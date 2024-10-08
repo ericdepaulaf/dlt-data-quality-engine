@@ -1,0 +1,398 @@
+{
+    "datasets": [
+        {
+            "name": "fa233c3f",
+            "displayName": "failure_rate_per_day",
+            "query": "SELECT\n     date(timestamp) AS day\n    ,SUM(failing_records) / (SUM(failing_records) + SUM(passing_records)) * 100 AS failure_rate\n    ,SUM(failing_records) + SUM(passing_records) AS output_records\nFROM my_catalog.my_schema.dlt_event_log_data_quality_agg\nGROUP BY day\nORDER BY day"
+        },
+        {
+            "name": "5dc438e6",
+            "displayName": "failure_rate_per_dataset",
+            "query": "select\n   dataset,\n   date(timestamp) as day,\n   sum(passing_records) as passing_records,\n   sum(failing_records) as failing_records,\n   sum(failing_records)/ (sum(passing_records) + sum(failing_records)) * 100 as failure_rate\nfrom my_catalog.my_schema.dlt_event_log_data_quality_agg\ngroup by all"
+        },
+        {
+            "name": "23003915",
+            "displayName": "failure_rate_per_expectation",
+            "query": "select\n  expectation AS name,\n  dataset,\n  date(timestamp) as date,\n  sum(passing_records) as passed_records,\n  sum(failing_records) as failed_records,\n  sum(passing_records) + sum(failing_records)  as output_records,\n  sum(failing_records) / (sum(passing_records) + sum(failing_records)) * 100 as failure_rate\nfrom my_catalog.my_schema.dlt_event_log_data_quality_agg\ngroup by all"
+        },
+        {
+            "name": "668c1e2b",
+            "displayName": "avg_ingested_records_per_day",
+            "query": "SELECT ROUND(AVG(output_records)) AS avg_output_records_per_day\nFROM (\n    SELECT\n        date(timestamp) AS day\n        ,SUM(failing_records) + SUM(passing_records) AS output_records\n    FROM my_catalog.my_schema.dlt_event_log_data_quality_agg\n    GROUP BY day\n) sq1"
+        },
+        {
+            "name": "5d0dbc24",
+            "displayName": "avg_failure_rate",
+            "query": "SELECT ROUND(AVG(failure_rate), 4) AS avg_failure_rate\nFROM (\n    SELECT\n        date(timestamp) AS day\n        ,SUM(failing_records) / (SUM(failing_records) + SUM(passing_records)) AS failure_rate\n    FROM my_catalog.my_schema.dlt_event_log_data_quality_agg\n    GROUP BY day\n) sq1"
+        }
+    ],
+    "pages": [
+        {
+            "name": "ea103251",
+            "displayName": "New Page",
+            "layout": [
+                {
+                    "widget": {
+                        "name": "ed32c570",
+                        "queries": [
+                            {
+                                "name": "main_query",
+                                "query": {
+                                    "datasetName": "668c1e2b",
+                                    "fields": [
+                                        {
+                                            "name": "avg_output_records_per_day",
+                                            "expression": "`avg_output_records_per_day`"
+                                        }
+                                    ],
+                                    "disaggregated": true
+                                }
+                            }
+                        ],
+                        "spec": {
+                            "version": 2,
+                            "widgetType": "counter",
+                            "encodings": {
+                                "value": {
+                                    "fieldName": "avg_output_records_per_day",
+                                    "displayName": "avg_output_records_per_day"
+                                }
+                            },
+                            "frame": {
+                                "title": "Ingestão",
+                                "showTitle": true,
+                                "description": "Média de registros ingeridos por dia",
+                                "showDescription": true
+                            }
+                        }
+                    },
+                    "position": {
+                        "x": 2,
+                        "y": 0,
+                        "width": 2,
+                        "height": 4
+                    }
+                },
+                {
+                    "widget": {
+                        "name": "8a3ee5be",
+                        "queries": [
+                            {
+                                "name": "main_query",
+                                "query": {
+                                    "datasetName": "5d0dbc24",
+                                    "fields": [
+                                        {
+                                            "name": "avg_failure_rate",
+                                            "expression": "`avg_failure_rate`"
+                                        }
+                                    ],
+                                    "disaggregated": true
+                                }
+                            }
+                        ],
+                        "spec": {
+                            "version": 2,
+                            "widgetType": "counter",
+                            "encodings": {
+                                "value": {
+                                    "fieldName": "avg_failure_rate",
+                                    "format": {
+                                        "type": "number-percent",
+                                        "decimalPlaces": {
+                                            "type": "all"
+                                        }
+                                    },
+                                    "displayName": "avg_failure_rate"
+                                }
+                            },
+                            "frame": {
+                                "title": "Dados inválidos",
+                                "showTitle": true,
+                                "description": "Média de registros com falha",
+                                "showDescription": true
+                            }
+                        }
+                    },
+                    "position": {
+                        "x": 4,
+                        "y": 0,
+                        "width": 2,
+                        "height": 4
+                    }
+                },
+                {
+                    "widget": {
+                        "name": "2bd102e4",
+                        "queries": [
+                            {
+                                "name": "main_query",
+                                "query": {
+                                    "datasetName": "5dc438e6",
+                                    "fields": [
+                                        {
+                                            "name": "dataset",
+                                            "expression": "`dataset`"
+                                        },
+                                        {
+                                            "name": "daily(day)",
+                                            "expression": "DATE_TRUNC(\"DAY\", `day`)"
+                                        },
+                                        {
+                                            "name": "sum(failing_records)",
+                                            "expression": "SUM(`failing_records`)"
+                                        }
+                                    ],
+                                    "disaggregated": false
+                                }
+                            }
+                        ],
+                        "spec": {
+                            "version": 3,
+                            "widgetType": "bar",
+                            "encodings": {
+                                "x": {
+                                    "fieldName": "daily(day)",
+                                    "scale": {
+                                        "type": "temporal"
+                                    },
+                                    "displayName": "day"
+                                },
+                                "y": {
+                                    "fieldName": "sum(failing_records)",
+                                    "scale": {
+                                        "type": "quantitative"
+                                    },
+                                    "displayName": "Sum of failing_records"
+                                },
+                                "color": {
+                                    "fieldName": "dataset",
+                                    "scale": {
+                                        "type": "categorical"
+                                    },
+                                    "displayName": "dataset"
+                                }
+                            },
+                            "frame": {
+                                "title": "Quantidade de registros com falhas por tabela ao longo do tempo",
+                                "showTitle": true
+                            }
+                        }
+                    },
+                    "position": {
+                        "x": 3,
+                        "y": 4,
+                        "width": 3,
+                        "height": 8
+                    }
+                },
+                {
+                    "widget": {
+                        "name": "cf9a1825",
+                        "queries": [
+                            {
+                                "name": "main_query",
+                                "query": {
+                                    "datasetName": "23003915",
+                                    "fields": [
+                                        {
+                                            "name": "name",
+                                            "expression": "`name`"
+                                        },
+                                        {
+                                            "name": "date",
+                                            "expression": "`date`"
+                                        },
+                                        {
+                                            "name": "sum(failed_records)",
+                                            "expression": "SUM(`failed_records`)"
+                                        }
+                                    ],
+                                    "disaggregated": false
+                                }
+                            }
+                        ],
+                        "spec": {
+                            "version": 3,
+                            "widgetType": "bar",
+                            "encodings": {
+                                "x": {
+                                    "fieldName": "date",
+                                    "scale": {
+                                        "type": "temporal"
+                                    },
+                                    "axis": {
+                                        "title": "date"
+                                    },
+                                    "displayName": "date"
+                                },
+                                "y": {
+                                    "fieldName": "sum(failed_records)",
+                                    "scale": {
+                                        "type": "quantitative"
+                                    },
+                                    "axis": {
+                                        "title": "failed_records"
+                                    },
+                                    "displayName": "failed_records"
+                                },
+                                "color": {
+                                    "fieldName": "name",
+                                    "scale": {
+                                        "type": "categorical",
+                                        "mappings": [
+                                            {
+                                                "value": "user_gold_dlt",
+                                                "color": "#F58742"
+                                            },
+                                            {
+                                                "value": "spend_silver_dlt",
+                                                "color": "#F5C61B"
+                                            },
+                                            {
+                                                "value": "user_silver_dlt",
+                                                "color": "#A58AFF"
+                                            },
+                                            {
+                                                "value": "users_bronze_dlt",
+                                                "color": "#C63FA9"
+                                            },
+                                            {
+                                                "value": "valid_score",
+                                                "color": "#C44427"
+                                            },
+                                            {
+                                                "value": "valid_id",
+                                                "color": "#D67C1C"
+                                            },
+                                            {
+                                                "value": "valid_age",
+                                                "color": "#D6C31C"
+                                            },
+                                            {
+                                                "value": "correct_schema",
+                                                "color": "#A58AFF"
+                                            },
+                                            {
+                                                "value": "valid_income",
+                                                "color": "#C63FA9"
+                                            }
+                                        ]
+                                    },
+                                    "displayName": "name"
+                                }
+                            },
+                            "frame": {
+                                "title": "Quantidade de registros com falhas por expectation ao longo do tempo",
+                                "showTitle": true
+                            },
+                            "mark": {
+                                "layout": "stack"
+                            }
+                        }
+                    },
+                    "position": {
+                        "x": 0,
+                        "y": 12,
+                        "width": 6,
+                        "height": 7
+                    }
+                },
+                {
+                    "widget": {
+                        "name": "96c3255f",
+                        "queries": [
+                            {
+                                "name": "main_query",
+                                "query": {
+                                    "datasetName": "23003915",
+                                    "fields": [
+                                        {
+                                            "name": "date",
+                                            "expression": "`date`"
+                                        },
+                                        {
+                                            "name": "max(failure_rate)",
+                                            "expression": "MAX(`failure_rate`)"
+                                        }
+                                    ],
+                                    "disaggregated": false
+                                }
+                            }
+                        ],
+                        "spec": {
+                            "version": 3,
+                            "widgetType": "line",
+                            "encodings": {
+                                "x": {
+                                    "fieldName": "date",
+                                    "scale": {
+                                        "type": "temporal"
+                                    },
+                                    "axis": {
+                                        "hideTitle": true
+                                    },
+                                    "displayName": "date"
+                                },
+                                "y": {
+                                    "primary": {
+                                        "fields": [
+                                            {
+                                                "fieldName": "max(failure_rate)",
+                                                "displayName": "Taxa de falha (%)"
+                                            }
+                                        ],
+                                        "scale": {
+                                            "type": "quantitative"
+                                        },
+                                        "axis": {
+                                            "hideLabels": false,
+                                            "hideTitle": false
+                                        }
+                                    },
+                                    "secondary": {
+                                        "fields": [],
+                                        "scale": {
+                                            "type": "quantitative"
+                                        }
+                                    },
+                                    "alignAxesAtZero": false
+                                },
+                                "color": {},
+                                "label": {
+                                    "show": false
+                                }
+                            },
+                            "frame": {
+                                "title": "Taxa de falha ao longo do tempo",
+                                "showTitle": true,
+                                "showDescription": false
+                            },
+                            "mark": {
+                                "layout": "layer"
+                            }
+                        }
+                    },
+                    "position": {
+                        "x": 0,
+                        "y": 4,
+                        "width": 3,
+                        "height": 8
+                    }
+                },
+                {
+                    "widget": {
+                        "name": "ae4387e3",
+                        "textbox_spec": "### Monitoramento de Data Quality\n---\nExemplo de dashboard para monitoramento de data quality utilizando o event log do DLT.   \n\nPara mais informações sobre o event log do DLT, acesse a documentação [neste link](https://docs.databricks.com/en/delta-live-tables/observability.html#what-is-the-delta-live-tables-event-log)"
+                    },
+                    "position": {
+                        "x": 0,
+                        "y": 0,
+                        "width": 2,
+                        "height": 4
+                    }
+                }
+            ]
+        }
+    ]
+}
